@@ -3,285 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>დიო - ჟალუზის კონფიგურატორი</title>
+    <title>დიო - პრემიუმ კონფიგურატორი</title>
     <style>
         :root {
-            --bg-base: #0f172a;
-            --panel-bg: rgba(30, 41, 59, 0.7);
-            --text-main: #f1f5f9;
+            --bg: #0f172a;
+            --panel: rgba(30, 41, 59, 0.7);
             --accent: #38bdf8;
-            --accent-glow: rgba(56, 189, 248, 0.5);
+            --text: #f1f5f9;
         }
 
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            text-align: center;
-            background-color: var(--bg-base);
-            /* ნაზი ფონის გრადიენტი, რომელიც დინამიურად იცვლება */
-            background-image: radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
-                              radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
-            color: var(--text-main);
+            background: var(--bg);
+            background-image: radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+            color: var(--text);
             margin: 0;
             padding: 0;
-            overflow: hidden;
-            touch-action: none;
-            transition: background 0.5s ease;
+            overflow-x: hidden;
         }
 
-        /* --- მოძრავი სათაური (Animated Neon Title) --- */
+        /* --- ანიმაციური სათაური --- */
+        .header {
+            background: var(--panel);
+            backdrop-filter: blur(15px);
+            padding: 20px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
         .neon-title {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--text-main);
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            letter-spacing: 2px;
             margin: 0 0 15px 0;
-            position: relative;
-            display: inline-block;
         }
 
         .neon-title span {
             display: inline-block;
-            animation: moveLetter 2s ease-in-out infinite;
-        }
-
-        /* Glow effect */
-        .neon-title span::before {
-            content: attr(data-text);
-            position: absolute;
-            left: 0;
-            top: 0;
+            animation: bounce 2s infinite ease-in-out;
             color: var(--accent);
-            filter: blur(8px);
-            opacity: 0.8;
-            animation: glowPulse 2s ease-in-out infinite;
+            text-shadow: 0 0 10px var(--accent);
         }
 
-        @keyframes moveLetter {
+        @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+            50% { transform: translateY(-7px); }
         }
 
-        /* ასოების ანიმაციის დაყოვნება ტალღის ეფექტისთვის */
-        .neon-title span:nth-child(1) { animation-delay: 0.1s; }
-        .neon-title span:nth-child(2) { animation-delay: 0.2s; }
-        .neon-title span:nth-child(3) { animation-delay: 0.3s; }
-        .neon-title span:nth-child(4) { animation-delay: 0.4s; }
-        .neon-title span:nth-child(5) { animation-delay: 0.5s; }
-        .neon-title span:nth-child(6) { animation-delay: 0.6s; }
-
-        @keyframes glowPulse {
-            0%, 100% { opacity: 0.5; filter: blur(6px); }
-            50% { opacity: 1; filter: blur(10px); }
-        }
-
-        /* --- თანამედროვე პანელი (Glassmorphism) --- */
-        .ui-header {
-            background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 15px 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 10;
-        }
-
-        .panel {
-            background: rgba(15, 23, 42, 0.5);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* --- ღილაკები --- */
-        .type-btn {
-            background: #1e293b;
-            color: var(--text-main);
-            padding: 10px 18px;
+        /* --- კონტროლები --- */
+        .btn-group { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        
+        .main-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 10px 16px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 14px;
             cursor: pointer;
-            margin: 4px;
-            font-weight: 500;
-            transition: 0.3s ease;
+            transition: 0.3s;
+            font-weight: 600;
         }
 
-        .type-btn:hover {
-            background: #334155;
-            transform: translateY(-2px);
-        }
-
-        .type-btn.active {
+        .main-btn.active {
             background: var(--accent);
             color: #000;
-            border-color: var(--accent);
-            font-weight: 700;
-            box-shadow: 0 0 15px var(--accent-glow);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
         }
 
-        .upload-btn {
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--accent);
-            padding: 12px 20px;
-            border-radius: 10px;
-            display: inline-block;
-            cursor: pointer;
-            font-size: 15px;
-            border: 1px solid var(--accent);
-            font-weight: 700;
+        /* --- ექსპლუატაციის წესები (Animated Accordion) --- */
+        .info-section {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .info-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
             transition: 0.3s;
-            text-shadow: 0 0 5px var(--accent-glow);
         }
 
-        .upload-btn:hover {
-            background: rgba(56, 189, 248, 0.2);
-            box-shadow: 0 0 20px var(--accent-glow);
-        }
-
-        /* --- ფერები --- */
-        .color-group {
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .color-label {
-            font-size: 13px;
-            color: rgba(241, 245, 249, 0.6);
-            min-width: 65px;
-            text-align: right;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .color-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.8);
+        .info-header {
+            padding: 15px;
             cursor: pointer;
-            transition: 0.2s ease;
-            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.02);
         }
 
-        .color-btn:hover {
-            transform: scale(1.15) translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        .info-header:hover { background: rgba(56, 189, 248, 0.1); }
+
+        .info-content {
+            max-height: 0;
+            padding: 0 15px;
+            transition: max-height 0.5s ease-out, padding 0.3s;
+            font-size: 14px;
+            color: #cbd5e1;
+            text-align: left;
+            line-height: 1.6;
         }
 
-        .color-btn.active {
-            border-color: var(--accent);
-            box-shadow: 0 0 10px var(--accent);
+        .info-card.open .info-content {
+            max-height: 500px;
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
+
+        .info-card.open .arrow { transform: rotate(180deg); }
+
+        .arrow { transition: 0.3s; color: var(--accent); }
 
         canvas {
-            background: #000;
             display: block;
-            margin: 0 auto;
-            touch-action: none;
+            margin: 20px auto;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 95%;
         }
 
-        #imgLoader {
-            display: none;
+        .upload-label {
+            background: linear-gradient(45deg, var(--accent), #8b5cf6);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: inline-block;
+            cursor: pointer;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
         }
+
+        .color-dot {
+            width: 30px; height: 30px; border-radius: 50%; border: 2px solid white;
+            display: inline-block; margin: 5px; cursor: pointer; transition: 0.2s;
+        }
+        .color-dot:hover { transform: scale(1.2); }
 
     </style>
 </head>
 <body>
 
-<div class="ui-header">
+<div class="header">
     <h1 class="neon-title">
-        <span data-text="ჟ">ჟ</span><span data-text="ა">ა</span><span data-text="ლ">ლ</span><span data-text="უ">უ</span><span data-text="ზ">ზ</span><span data-text="ი">ი</span>
+        <span>ჟ</span><span>ა</span><span>ლ</span><span>უ</span><span>ზ</span><span>ი</span>
     </h1>
 
-    <div class="panel">
-        <label for="imgLoader" class="upload-btn">📸 ფოტოს გადაღება / ატვირთვა</label>
-        <input type="file" id="imgLoader" accept="image/*" capture="environment">
+    <label for="imgLoader" class="upload-label">📸 გადაიღე / ატვირთე ფოტო</label>
+    <input type="file" id="imgLoader" accept="image/*" capture="environment" style="display:none;">
+
+    <div class="btn-group">
+        <button class="main-btn active" onclick="setType('horizontal')">ჰორიზონტალური</button>
+        <button class="main-btn" onclick="setType('vertical')">ვერტიკალური</button>
+        <button class="main-btn" onclick="setType('zebra')">ზებრა</button>
     </div>
 
-    <div class="panel">
-        <button class="type-btn active" onclick="setType('horizontal')">ჰორიზონტალური</button>
-        <button class="type-btn" onclick="setType('vertical')">ვერტიკალური</button>
-        <button class="type-btn" onclick="setType('zebra')">ზებრა</button>
-    </div>
-
-    <div id="color-controls" class="panel">
-        <div class="color-group">
-            <span id="label1" class="color-label">ფერი 1:</span>
-            <div class="color-btn active" style="background: #ffffff" onclick="changeColor(1, '#ffffff', this)"></div>
-            <div class="color-btn" style="background: #f4e7d4" onclick="changeColor(1, '#f4e7d4', this)"></div>
-            <div class="color-btn" style="background: #d9c09a" onclick="changeColor(1, '#d9c09a', this)"></div>
-            <div class="color-btn" style="background: #8b5e3c" onclick="changeColor(1, '#8b5e3c', this)"></div>
-            <div class="color-btn" style="background: #333333" onclick="changeColor(1, '#333333', this)"></div>
-        </div>
-        <div id="group2" class="color-group" style="display:none;">
-            <span class="color-label">ფერი 2:</span>
-            <div class="color-btn" style="background: #e0e0e0" onclick="changeColor(2, '#e0e0e0', this)"></div>
-            <div class="color-btn active" style="background: #a0a0a0" onclick="changeColor(2, '#a0a0a0', this)"></div>
-            <div class="color-btn" style="background: #606060" onclick="changeColor(2, '#606060', this)"></div>
-            <div class="color-btn" style="background: #1a1a1a" onclick="changeColor(2, '#1a1a1a', this)"></div>
-        </div>
+    <div id="colors" style="margin-top: 10px;">
+        <div class="color-dot" style="background: #ffffff" onclick="changeColor(1, '#ffffff')"></div>
+        <div class="color-dot" style="background: #f4e7d4" onclick="changeColor(1, '#f4e7d4')"></div>
+        <div class="color-dot" style="background: #8b5e3c" onclick="changeColor(1, '#8b5e3c')"></div>
+        <div class="color-dot" style="background: #334155" onclick="changeColor(1, '#334155')"></div>
     </div>
 </div>
 
 <canvas id="canvas"></canvas>
 
+<div class="info-section">
+    <h3 style="color: var(--accent); margin-bottom: 15px;">🛠 ექსპლუატაციის წესები</h3>
+    
+    <div class="info-card" onclick="toggleInfo(this)">
+        <div class="info-header">როგორ გამოვიყენოთ? <span class="arrow">▼</span></div>
+        <div class="info-content">
+            • ატვირთეთ ფანჯრის ფოტო.<br>
+            • მოკიდეთ ხელი წითელ წერტილებს და დასვით ფანჯრის კუთხეებში.<br>
+            • აირჩიეთ სასურველი ტიპი და ფერი.
+        </div>
+    </div>
+
+    <div class="info-card" onclick="toggleInfo(this)">
+        <div class="info-header">მოვლის ინსტრუქცია <span class="arrow">▼</span></div>
+        <div class="info-content">
+            • გაწმინდეთ რბილი, ოდნავ ნოტიო ქსოვილით.<br>
+            • მოერიდეთ უხეშ ქიმიურ საშუალებებს.<br>
+            • მექანიზმის ხანგრძლივობისთვის გამოიყენეთ ფრთხილად.
+        </div>
+    </div>
+
+    <div class="info-card" onclick="toggleInfo(this)">
+        <div class="info-header">მნიშვნელოვანი რჩევა <span class="arrow">▼</span></div>
+        <div class="info-content">
+            ჟალუზის აკეცვისას დარწმუნდით, რომ ფირფიტები ჰორიზონტალურ, ღია მდგომარეობაშია, რათა არ დაზიანდეს მექანიზმი.
+        </div>
+    </div>
+</div>
+
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     let baseImg = new Image(), overlayImg = new Image();
-    let pts = [{x: 50, y: 50}, {x: 250, y: 50}, {x: 250, y: 250}, {x: 50, y: 250}];
-    let dragging = -1, c1 = '#ffffff', c2 = '#a0a0a0', type = 'horizontal';
+    let pts = [{x: 40, y: 40}, {x: 260, y: 40}, {x: 260, y: 260}, {x: 40, y: 260}];
+    let dragging = -1, c1 = '#ffffff', type = 'horizontal';
 
     const svgs = {
         horizontal: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="COLOR1"/><path d="M0 5h100M0 10h100M0 15h100M0 20h100M0 25h100M0 30h100M0 35h100M0 40h100M0 45h100M0 50h100M0 55h100M0 60h100M0 65h100M0 70h100M0 75h100M0 80h100M0 85h100M0 90h100M0 95h100" stroke="black" stroke-width="0.3" opacity="0.4"/></svg>`,
         vertical: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="COLOR1"/><path d="M5 0v100M10 0v100M15 0v100M20 0v100M25 0v100M30 0v100M35 0v100M40 0v100M45 0v100M50 0v100M55 0v100M60 0v100M65 0v100M70 0v100M75 0v100M80 0v100M85 0v100M90 0v100M95 0v100" stroke="black" stroke-width="0.3" opacity="0.4"/></svg>`,
-        zebra: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="10" fill="COLOR1"/><rect y="10" width="100" height="10" fill="COLOR2"/><rect y="20" width="100" height="10" fill="COLOR1"/><rect y="30" width="100" height="10" fill="COLOR2"/><rect y="40" width="100" height="10" fill="COLOR1"/><rect y="50" width="100" height="10" fill="COLOR2"/><rect y="60" width="100" height="10" fill="COLOR1"/><rect y="70" width="100" height="10" fill="COLOR2"/><rect y="80" width="100" height="10" fill="COLOR1"/><rect y="90" width="100" height="10" fill="COLOR2"/></svg>`
+        zebra: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="10" fill="COLOR1"/><rect y="10" width="100" height="10" fill="rgba(0,0,0,0.1)"/><rect y="20" width="100" height="10" fill="COLOR1"/><rect y="30" width="100" height="10" fill="rgba(0,0,0,0.1)"/><rect y="40" width="100" height="10" fill="COLOR1"/><rect y="50" width="100" height="10" fill="rgba(0,0,0,0.1)"/><rect y="60" width="100" height="10" fill="COLOR1"/><rect y="70" width="100" height="10" fill="rgba(0,0,0,0.1)"/><rect y="80" width="100" height="10" fill="COLOR1"/><rect y="90" width="100" height="10" fill="rgba(0,0,0,0.1)"/></svg>`
     };
 
+    function toggleInfo(el) {
+        el.classList.toggle('open');
+    }
+
     function update() {
-        let s = svgs[type].replace(/COLOR1/g, c1).replace(/COLOR2/g, c2);
+        let s = svgs[type].replace(/COLOR1/g, c1);
         let url = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(s)));
         overlayImg.onload = draw;
         overlayImg.src = url;
-        // ფონის გრადიენტის შეცვლა არჩეული ფერის მიხედვით
-        document.body.style.backgroundImage = `radial-gradient(at 0% 0%, ${c1}33 0px, transparent 50%), radial-gradient(at 100% 100%, ${c2}22 0px, transparent 50%)`;
     }
 
     function setType(t) {
         type = t;
-        const btns = document.querySelectorAll('.type-btn');
-        btns.forEach(b => b.classList.remove('active'));
-        if(t==='horizontal') btns[0].classList.add('active');
-        if(t==='vertical') btns[1].classList.add('active');
-        if(t==='zebra') btns[2].classList.add('active');
-        
-        document.getElementById('label1').innerText = t === 'zebra' ? "ზოლი 1:" : "ფერი:";
-        document.getElementById('group2').style.display = t === 'zebra' ? 'flex' : 'none';
+        document.querySelectorAll('.main-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
         update();
     }
 
-    function changeColor(g, c, el) {
-        // აქტიური ღილაკის მონიშვნა
-        const parent = el.parentElement;
-        parent.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-
-        if(g===1) c1=c; else c2=c;
-        update();
-    }
+    function changeColor(g, c) { c1 = c; update(); }
 
     document.getElementById('imgLoader').onchange = (e) => {
         const r = new FileReader();
         r.onload = (ev) => {
             baseImg.onload = () => {
-                const headerH = document.querySelector('.ui-header').offsetHeight;
-                const ratio = Math.min(window.innerWidth / baseImg.width, (window.innerHeight - headerH) / baseImg.height);
+                const ratio = Math.min(window.innerWidth / baseImg.width, 400 / baseImg.height);
                 canvas.width = baseImg.width * ratio; canvas.height = baseImg.height * ratio;
                 const w = canvas.width, h = canvas.height;
                 pts = [{x:w*0.2,y:h*0.2},{x:w*0.8,y:h*0.2},{x:w*0.8,y:h*0.8},{x:w*0.2,y:h*0.8}];
@@ -297,23 +257,18 @@
             ctx.save();
             let minX = Math.min(pts[0].x, pts[3].x), minY = Math.min(pts[0].y, pts[1].y);
             let maxX = Math.max(pts[1].x, pts[2].x), maxY = Math.max(pts[2].y, pts[3].y);
-            ctx.globalAlpha = 0.88; // ოდნავ უფრო მკვეთრი
+            ctx.globalAlpha = 0.85;
             ctx.drawImage(overlayImg, minX, minY, maxX-minX, maxY-minY);
             ctx.restore();
         }
-        // წერტილები
         pts.forEach(p => {
-            ctx.beginPath(); ctx.arc(p.x, p.y, 22, 0, Math.PI*2);
-            ctx.fillStyle = "rgba(56, 189, 248, 0.8)"; // ლურჯი ნეონის წერტილები
-            ctx.fill();
-            ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
-            // Glow effect
-            ctx.beginPath(); ctx.arc(p.x, p.y, 30, 0, Math.PI*2);
-            ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(p.x, p.y, 18, 0, Math.PI*2);
+            ctx.fillStyle = "rgba(255,50,50,0.9)"; ctx.fill();
+            ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
         });
     }
 
+    // Touch/Mouse events
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
         const t = e.touches ? e.touches[0] : e;
@@ -322,28 +277,26 @@
 
     canvas.addEventListener('mousedown', e => {
         const p = getPos(e);
-        pts.forEach((pt, i) => { if(Math.hypot(pt.x-p.x, pt.y-p.y) < 45) dragging = i; });
-        if(dragging!==-1) e.preventDefault();
+        pts.forEach((pt, i) => { if(Math.hypot(pt.x-p.x, pt.y-p.y) < 40) dragging = i; });
     });
     canvas.addEventListener('touchstart', e => {
         const p = getPos(e);
-        pts.forEach((pt, i) => { if(Math.hypot(pt.x-p.x, pt.y-p.y) < 45) dragging = i; });
-        if(dragging!==-1) e.preventDefault();
+        pts.forEach((pt, i) => { if(Math.hypot(pt.x-p.x, pt.y-p.y) < 40) dragging = i; });
     }, {passive: false});
 
     window.addEventListener('mousemove', e => {
         if(dragging===-1) return;
-        const p = getPos(e); pts[dragging] = p; draw(); e.preventDefault();
+        const p = getPos(e); pts[dragging] = p; draw();
     });
     window.addEventListener('touchmove', e => {
         if(dragging===-1) return;
-        const p = getPos(e); pts[dragging] = p; draw(); e.preventDefault();
+        const p = getPos(e); pts[dragging] = p; draw();
     }, {passive: false});
 
     window.addEventListener('mouseup', () => dragging = -1);
     window.addEventListener('touchend', () => dragging = -1);
 
-    canvas.width = window.innerWidth; canvas.height = 400;
+    canvas.width = window.innerWidth * 0.9; canvas.height = 300;
     update();
 </script>
 </body>
