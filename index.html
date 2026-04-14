@@ -3,27 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>დიო - კონფიგურატორი</title>
+    <title>დიო - სმარტ კონსულტანტი</title>
     <style>
         :root { --accent: #38bdf8; --bg: #0f172a; --panel: rgba(30, 41, 59, 0.9); }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; overflow: hidden; touch-action: none; }
         .container { display: flex; flex-direction: column; height: 100vh; }
+        
+        /* ჰედერი */
         .header { background: var(--panel); backdrop-filter: blur(10px); padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
         .neon-title { font-size: 18px; font-weight: 900; color: var(--accent); text-transform: uppercase; margin: 0; letter-spacing: 2px; }
-        .main-content { display: flex; flex: 1; overflow: hidden; padding: 10px; gap: 10px; }
         
-        .canvas-area { flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 15px; position: relative; }
-        canvas { max-width: 95%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #334155; cursor: crosshair; }
+        /* მთავარი სექცია */
+        .main-content { display: flex; flex: 1; overflow: hidden; padding: 10px; gap: 10px; }
+        .canvas-area { flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 15px; }
+        canvas { max-width: 95%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #334155; }
 
-        .chat-panel { flex: 1; background: #1e293b; border-radius: 15px; display: flex; flex-direction: column; border: 1px solid var(--accent); overflow: hidden; }
+        /* ჩატი */
+        .chat-panel { flex: 1; background: #1e293b; border-radius: 15px; display: flex; flex-direction: column; border: 1px solid var(--accent); overflow: hidden; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); }
         .chat-header { background: var(--accent); color: #000; padding: 10px; font-weight: 800; font-size: 13px; text-align: center; }
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
-        .msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; }
-        .msg.ai { background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--accent); align-self: flex-start; color: #f1f5f9; }
+        
+        .msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; animation: fadeIn 0.3s ease; }
+        .msg.ai { background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--accent); align-self: flex-start; }
         .msg.user { background: var(--accent); color: #000; align-self: flex-end; font-weight: 600; }
         
-        .chat-input-area { padding: 10px; background: rgba(0,0,0,0.4); display: flex; gap: 5px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .chat-input-area { padding: 10px; background: rgba(0,0,0,0.4); display: flex; gap: 5px; align-items: center; }
         .chat-input { flex: 1; background: #0f172a; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; outline: none; }
+        .emoji-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px; transition: 0.2s; }
+        .emoji-btn:hover { transform: scale(1.2); }
         .send-btn { background: var(--accent); border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         .upload-label { background: var(--accent); color: #000; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
@@ -34,7 +43,7 @@
 
 <div class="container">
     <div class="header">
-        <h2 class="neon-title">DIO CONFIGURATOR</h2>
+        <h2 class="neon-title">DIO SMART ASSISTANT</h2>
         <div style="margin-top:10px; display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:10px;">
             <label for="imgLoader" class="upload-label">📸 ატვირთე ფოტო</label>
             <input type="file" id="imgLoader" accept="image/*" style="display:none;">
@@ -42,7 +51,7 @@
                 <option value="horizontal">ჰორიზონტალური</option>
                 <option value="vertical">ვერტიკალური</option>
                 <option value="zebra">ზებრა</option>
-                <option value="romuli">რომაული</option>
+                <option value="roleti">როლეტი</option>
             </select>
             <span style="font-size:11px;">ანიმაცია: <input type="checkbox" id="animCheck" onchange="toggleAnim()"></span>
         </div>
@@ -54,11 +63,12 @@
         </div>
 
         <div class="chat-panel">
-            <div class="chat-header">კონსულტაცია</div>
+            <div class="chat-header">კონსულტაცია 💬</div>
             <div class="chat-messages" id="chatMsgs">
-                <div class="msg ai">მოგესალმებით, რით შემიძლია დაგეხმაროთ? მაქვს სრული ინფორმაცია პროდუქციის ზომებზე და მოვლის წესებზე.</div>
+                <div class="msg ai">გამარჯობა! მე ვარ დიოს სმარტ ასისტენტი. შემიძლია დაგეხმაროთ ნებისმიერ კითხვაზე: ჟალუზები, ფანჯრები, პერგოლები, ჭიშკრები თუ სხვა. მკითხეთ რაც გსურთ! 😊</div>
             </div>
             <div class="chat-input-area">
+                <button class="emoji-btn" onclick="addEmoji('😊')">😊</button>
                 <input type="text" id="userInput" class="chat-input" placeholder="ჩაწერეთ კითხვა..." onkeypress="if(event.key==='Enter') sendMessage()">
                 <button class="send-btn" onclick="sendMessage()">➤</button>
             </div>
@@ -67,43 +77,51 @@
 </div>
 
 <script>
-    // --- ლოგიკური ცოდნის ბაზა ---
-    const dioData = [
-        {
-            keys: ["ზომა", "ზომები", "რა ზომის", "მაქსიმალური", "მინიმალური", "სიგანე", "სიმაღლე"],
-            text: "პროდუქციის ზომები ინდივიდუალურია: ჰორიზონტალური ჟალუზის სიგანე კეთდება 0.25მ-დან 3მ-მდე. ვერტიკალურის სიგანე 4 მეტრამდეა, ხოლო სიმაღლე - 5 მეტრამდე. ზებრა და როლეტი მაქსიმუმ 2.4 მეტრამდე სიგანისაა, ხოლო რომაული ფარდის რეკომენდებული სიგანე 2.5-3 მეტრია."
-        },
-        {
-            keys: ["ფასი", "რა ღირს", "ღირებულება", "იაფი"],
-            text: "ფასის დასაზუსტებლად გთხოვთ მიმართოთ კონსულტანტს, რადგან ღირებულება დამოკიდებულია ზუსტ ზომებზე, მასალის ფაქტურაზე და მექანიზმზე."
-        },
-        {
-            keys: ["რომაული", "ფხრიწი", "რეცხვა", "გარეცხვა"],
-            text: "რომაული ფარდა ძალიან მოსახერხებელია. ქსოვილი კარნიზზე სპეციალური წებოვანი ლენტით (ფხრიწით) მაგრდება, რაც საშუალებას გაძლევთ მარტივად მოხსნათ და გარეცხოთ."
-        },
-        {
-            keys: ["მოვლა", "წმენდა", "გაწმენდა", "დასვრა"],
-            text: "მოვლის წესები ასეთია: ვერტიკალური და ჰორიზონტალური ჟალუზები იწმინდება ნოტიო ჩვრით. ზებრა და როლეტი საჭიროებს მხოლოდ მშრალ წმენდას (რბილი ჯაგრისით ან მტვერსასრუტით), ხოლო რომაული ფარდა შეგიძლიათ გარეცხოთ."
-        },
-        {
-            keys: ["ბავშვი", "უსაფრთხოება", "თოკი", "ჯაჭვი"],
-            text: "უსაფრთხოება ჩვენთვის პრიორიტეტია. გირჩევთ, სამართავი ჯაჭვები და თოკები მოარიდოთ ბავშვებს. გვაქვს სპეციალური ფიქსატორები, რომლებიც უზრუნველყოფს უსაფრთხოებას."
-        },
-        {
-            keys: ["მაგნოლია", "მინაზე"],
-            text: "მაგნოლია მაგრდება უშუალოდ ფანჯრის ჩარჩოზე. ის მინიმალურ ადგილს იკავებს და ფანჯრის გადმოკიდებისას მყარად ფიქსირდება."
-        }
+    // --- გაფართოებული ცოდნის ბაზა (dio.ge-ს სრული ასორტიმენტი) ---
+    const dioKnowledge = [
+        { keys: ["პერგოლ", "პერგოლა", "გადახურვა", "ტერასა"], text: "დიოს პერგოლები საუკეთესო გამოსავალია ღია სივრცეებისთვის. გვაქვს ბიოკლიმატური, მინის და ნაჭრის მოდელები. აზომვა და პროექტირება ხდება ინდივიდუალურად. 🌦️" },
+        { keys: ["კარი", "ჭიშკარი", "გარაჟი", "ავტოფარეხი", "სექციური"], text: "დიო გთავაზობთ გარაჟის სექციურ კარებს და ეზოს ჭიშკრის ავტომატიკას (იტალიური NICE ბრენდის). კომფორტი და უსაფრთხოება გარანტირებულია! 🚗" },
+        { keys: ["ფანჯარა", "მეტალოპლასტმასი", "ალუმინი", "პროფილი"], text: "დიო აწარმოებს ევროპული სტანდარტის მეტალოპლასტმასისა და ალუმინის კარ-ფანჯრებს (REHAU, ALUTEST). გვაქვს ენერგოეფექტური მინაპაკეტები. 🪟" },
+        { keys: ["ტენტი", "მარკიზა", "მზისგან", "ქოლგა"], text: "ჩვენი ტენტები და მარკიზები გიცავთ მზისგან. გვაქვს კასეტური, გამოსაშლელი და სტაციონარული მოდელები. ☀️" },
+        { keys: ["მწერები", "ბადე", "ფანჯრის ბადე"], text: "დიო გთავაზობთ მწერებისგან დამცავ ბადეებს: სტაციონარული, როლეტური, პლისე და კარის ბადეები. დაემშვიდობეთ მწერებს! 🦟" },
+        { keys: ["ზომა", "ზომები", "სიგანე", "სიმაღლე"], text: "პროდუქციის ზომები ინდივიდუალურია. ჰორიზონტალური - 3მ-მდე, ვერტიკალური - 4მ სიგანე/5მ სიმაღლე, ზებრა/როლეტი - 2.4მ-მდე. 📏" },
+        { keys: ["მოვლა", "წმენდა", "გარეცხვა"], text: "ჰორიზონტალური და ვერტიკალური - ნოტიო ჩვრით. ზებრა და როლეტი - მხოლოდ მშრალი წმენდით. რომაული ფარდა - ირეცხება. 🧼" },
+        { keys: ["ფასი", "ღირს", "იაფი"], text: "ფასის დასადგენად საჭიროა ზომები და მასალის შერჩევა. გთხოვთ, ზუსტი კალკულაციისთვის მიმართოთ ჩვენს კონსულტანტს. 💰" },
+        { keys: ["გამარჯობა", "სალამი", "პრივეტ"], text: "მოგესალმებით! რით შემიძლია დაგეხმაროთ დღეს? 😊" }
     ];
 
-    function getResponse(input) {
+    // --- Fuzzy Search / ჭკვიანი ამოცნობა ---
+    function getSmartResponse(input) {
         input = input.toLowerCase();
-        for (let item of dioData) {
+        let bestMatch = null;
+        
+        for (let item of dioKnowledge) {
             for (let key of item.keys) {
-                if (input.includes(key)) return item.text;
+                // ამოიცნობს სიტყვას მაშინაც, თუ მომხმარებელს 1-2 ასო შეეშალა
+                if (input.includes(key) || levenshtein(input, key) <= 2) {
+                    bestMatch = item.text;
+                    break;
+                }
             }
         }
-        return "გთხოვთ დააზუსტოთ თქვენი კითხვა. შემიძლია მოგაწოდოთ ინფორმაცია ზომებზე, მოვლაზე ან პროდუქციის მახასიათებლებზე. ფასის დასადგენად კი უმჯობესია დაუკავშირდეთ კონსულტანტს.";
+        return bestMatch || "ამ საკითხზე ინფორმაციის დასაზუსტებლად გთხოვთ დაუკავშირდეთ დიოს ცხელ ხაზს. სხვა რა გაინტერესებთ? 😊";
     }
+
+    // Levenshtein Algorithm - ასოების შეცდომის ამოცნობისთვის
+    function levenshtein(a, b) {
+        const matrix = [];
+        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+        for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+                if (b.charAt(i - 1) == a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+                else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+            }
+        }
+        return matrix[b.length][a.length];
+    }
+
+    function addEmoji(emoji) { document.getElementById('userInput').value += emoji; }
 
     function sendMessage() {
         const input = document.getElementById('userInput');
@@ -111,7 +129,7 @@
         if(!text) return;
         addMsg(text, 'user');
         input.value = '';
-        setTimeout(() => addMsg(getResponse(text), 'ai'), 500);
+        setTimeout(() => addMsg(getSmartResponse(text), 'ai'), 600);
     }
 
     function addMsg(t, s) {
@@ -123,25 +141,17 @@
         c.scrollTop = c.scrollHeight;
     }
 
-    // --- მორგების ლოგიკა ---
+    // --- ვიზუალიზაცია ---
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     let baseImg = new Image();
-    let pts = [{x: 50, y: 50}, {x: 250, y: 50}, {x: 250, y: 200}, {x: 50, y: 200}];
-    let dragging = -1, type = 'horizontal', animH = 1, animID = null;
-
-    function setType(t) { type = t; draw(); }
-    function toggleAnim() { 
-        if(document.getElementById('animCheck').checked) { 
-            animID = setInterval(() => { animH -= 0.01; if(animH < 0.1) animH = 1; draw(); }, 50); 
-        } else { clearInterval(animID); animH = 1; draw(); } 
-    }
+    let pts = [{x:50,y:50},{x:250,y:50},{x:250,y:200},{x:50,y:200}];
+    let dragging = -1, animH = 1;
 
     function draw() {
         ctx.clearRect(0,0,canvas.width,canvas.height);
         if(baseImg.src) ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
-        ctx.globalAlpha = 0.7;
-        ctx.fillStyle = "#38bdf8";
+        ctx.globalAlpha = 0.6; ctx.fillStyle = "#38bdf8";
         ctx.fillRect(pts[0].x, pts[0].y, (pts[1].x-pts[0].x), (pts[2].y-pts[1].y)*animH);
         ctx.globalAlpha = 1;
         pts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI*2); ctx.fillStyle="white"; ctx.fill(); ctx.strokeStyle="#38bdf8"; ctx.stroke(); });
