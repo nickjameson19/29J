@@ -3,50 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>დიო - კონფიგურატორი</title>
+    <title>დიო - ჟალუზის კონფიგურატორი</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #121212; color: white; margin: 0; padding: 0; overflow: hidden; touch-action: none; }
-        .ui-header { background: #1a1a1a; padding: 10px; border-bottom: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.6); position: relative; z-index: 10; }
-        .panel { background: #222; border-radius: 10px; padding: 8px; margin-bottom: 5px; border: 1px solid #333; }
-        .type-btn { background: #333; color: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #444; font-size: 13px; cursor: pointer; margin: 2px; }
-        .type-btn.active { background: #00b4d8; border-color: #00e6ff; font-weight: bold; }
-        .upload-btn { background: #2a2a2a; color: #00e6ff; padding: 8px 15px; border-radius: 6px; display: inline-block; cursor: pointer; font-size: 14px; border: 1px solid #444; }
-        .color-group { margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .color-label { font-size: 11px; color: #aaa; width: 50px; text-align: right; }
-        .color-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; }
-        canvas { background: #000; display: block; margin: 0 auto; touch-action: none; }
-        #imgLoader { display: none; }
+        :root {
+            --bg-base: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f1f5f9;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.5);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            text-align: center;
+            background-color: var(--bg-base);
+            /* ნაზი ფონის გრადიენტი, რომელიც დინამიურად იცვლება */
+            background-image: radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            touch-action: none;
+            transition: background 0.5s ease;
+        }
+
+        /* --- მოძრავი სათაური (Animated Neon Title) --- */
+        .neon-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0 0 15px 0;
+            position: relative;
+            display: inline-block;
+        }
+
+        .neon-title span {
+            display: inline-block;
+            animation: moveLetter 2s ease-in-out infinite;
+        }
+
+        /* Glow effect */
+        .neon-title span::before {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--accent);
+            filter: blur(8px);
+            opacity: 0.8;
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes moveLetter {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* ასოების ანიმაციის დაყოვნება ტალღის ეფექტისთვის */
+        .neon-title span:nth-child(1) { animation-delay: 0.1s; }
+        .neon-title span:nth-child(2) { animation-delay: 0.2s; }
+        .neon-title span:nth-child(3) { animation-delay: 0.3s; }
+        .neon-title span:nth-child(4) { animation-delay: 0.4s; }
+        .neon-title span:nth-child(5) { animation-delay: 0.5s; }
+        .neon-title span:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.5; filter: blur(6px); }
+            50% { opacity: 1; filter: blur(10px); }
+        }
+
+        /* --- თანამედროვე პანელი (Glassmorphism) --- */
+        .ui-header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 15px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        .panel {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* --- ღილაკები --- */
+        .type-btn {
+            background: #1e293b;
+            color: var(--text-main);
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            cursor: pointer;
+            margin: 4px;
+            font-weight: 500;
+            transition: 0.3s ease;
+        }
+
+        .type-btn:hover {
+            background: #334155;
+            transform: translateY(-2px);
+        }
+
+        .type-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: 700;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .upload-btn {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            padding: 12px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            cursor: pointer;
+            font-size: 15px;
+            border: 1px solid var(--accent);
+            font-weight: 700;
+            transition: 0.3s;
+            text-shadow: 0 0 5px var(--accent-glow);
+        }
+
+        .upload-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* --- ფერები --- */
+        .color-group {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .color-label {
+            font-size: 13px;
+            color: rgba(241, 245, 249, 0.6);
+            min-width: 65px;
+            text-align: right;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .color-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: 0.2s ease;
+            position: relative;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.15) translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .color-btn.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        canvas {
+            background: #000;
+            display: block;
+            margin: 0 auto;
+            touch-action: none;
+        }
+
+        #imgLoader {
+            display: none;
+        }
+
     </style>
 </head>
 <body>
 
 <div class="ui-header">
+    <h1 class="neon-title">
+        <span data-text="ჟ">ჟ</span><span data-text="ა">ა</span><span data-text="ლ">ლ</span><span data-text="უ">უ</span><span data-text="ზ">ზ</span><span data-text="ი">ი</span>
+    </h1>
+
     <div class="panel">
         <label for="imgLoader" class="upload-btn">📸 ფოტოს გადაღება / ატვირთვა</label>
         <input type="file" id="imgLoader" accept="image/*" capture="environment">
     </div>
 
     <div class="panel">
-        <button class="type-btn active" onclick="setType('horizontal')">Horizontal</button>
-        <button class="type-btn" onclick="setType('vertical')">Vertical</button>
-        <button class="type-btn" onclick="setType('zebra')">Zebra</button>
+        <button class="type-btn active" onclick="setType('horizontal')">ჰორიზონტალური</button>
+        <button class="type-btn" onclick="setType('vertical')">ვერტიკალური</button>
+        <button class="type-btn" onclick="setType('zebra')">ზებრა</button>
     </div>
 
     <div id="color-controls" class="panel">
         <div class="color-group">
             <span id="label1" class="color-label">ფერი 1:</span>
-            <div class="color-btn" style="background: #ffffff" onclick="changeColor(1, '#ffffff')"></div>
-            <div class="color-btn" style="background: #f4e7d4" onclick="changeColor(1, '#f4e7d4')"></div>
-            <div class="color-btn" style="background: #d9c09a" onclick="changeColor(1, '#d9c09a')"></div>
-            <div class="color-btn" style="background: #8b5e3c" onclick="changeColor(1, '#8b5e3c')"></div>
-            <div class="color-btn" style="background: #333333" onclick="changeColor(1, '#333333')"></div>
+            <div class="color-btn active" style="background: #ffffff" onclick="changeColor(1, '#ffffff', this)"></div>
+            <div class="color-btn" style="background: #f4e7d4" onclick="changeColor(1, '#f4e7d4', this)"></div>
+            <div class="color-btn" style="background: #d9c09a" onclick="changeColor(1, '#d9c09a', this)"></div>
+            <div class="color-btn" style="background: #8b5e3c" onclick="changeColor(1, '#8b5e3c', this)"></div>
+            <div class="color-btn" style="background: #333333" onclick="changeColor(1, '#333333', this)"></div>
         </div>
         <div id="group2" class="color-group" style="display:none;">
             <span class="color-label">ფერი 2:</span>
-            <div class="color-btn" style="background: #e0e0e0" onclick="changeColor(2, '#e0e0e0')"></div>
-            <div class="color-btn" style="background: #a0a0a0" onclick="changeColor(2, '#a0a0a0')"></div>
-            <div class="color-btn" style="background: #606060" onclick="changeColor(2, '#606060')"></div>
-            <div class="color-btn" style="background: #1a1a1a" onclick="changeColor(2, '#1a1a1a')"></div>
+            <div class="color-btn" style="background: #e0e0e0" onclick="changeColor(2, '#e0e0e0', this)"></div>
+            <div class="color-btn active" style="background: #a0a0a0" onclick="changeColor(2, '#a0a0a0', this)"></div>
+            <div class="color-btn" style="background: #606060" onclick="changeColor(2, '#606060', this)"></div>
+            <div class="color-btn" style="background: #1a1a1a" onclick="changeColor(2, '#1a1a1a', this)"></div>
         </div>
     </div>
 </div>
@@ -60,28 +238,43 @@
     let pts = [{x: 50, y: 50}, {x: 250, y: 50}, {x: 250, y: 250}, {x: 50, y: 250}];
     let dragging = -1, c1 = '#ffffff', c2 = '#a0a0a0', type = 'horizontal';
 
-    // SVG შაბლონები პირდაპირ კოდში
     const svgs = {
-        horizontal: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="COLOR1"/><path d="M0 10h100M0 20h100M0 30h100M0 40h100M0 50h100M0 60h100M0 70h100M0 80h100M0 90h100" stroke="black" stroke-width="0.5" opacity="0.3"/></svg>`,
-        vertical: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="COLOR1"/><path d="M10 0v100M20 0v100M30 0v100M40 0v100M50 0v100M60 0v100M70 0v100M80 0v100M90 0v100" stroke="black" stroke-width="0.5" opacity="0.3"/></svg>`,
+        horizontal: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="COLOR1"/><path d="M0 5h100M0 10h100M0 15h100M0 20h100M0 25h100M0 30h100M0 35h100M0 40h100M0 45h100M0 50h100M0 55h100M0 60h100M0 65h100M0 70h100M0 75h100M0 80h100M0 85h100M0 90h100M0 95h100" stroke="black" stroke-width="0.3" opacity="0.4"/></svg>`,
+        vertical: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="COLOR1"/><path d="M5 0v100M10 0v100M15 0v100M20 0v100M25 0v100M30 0v100M35 0v100M40 0v100M45 0v100M50 0v100M55 0v100M60 0v100M65 0v100M70 0v100M75 0v100M80 0v100M85 0v100M90 0v100M95 0v100" stroke="black" stroke-width="0.3" opacity="0.4"/></svg>`,
         zebra: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="10" fill="COLOR1"/><rect y="10" width="100" height="10" fill="COLOR2"/><rect y="20" width="100" height="10" fill="COLOR1"/><rect y="30" width="100" height="10" fill="COLOR2"/><rect y="40" width="100" height="10" fill="COLOR1"/><rect y="50" width="100" height="10" fill="COLOR2"/><rect y="60" width="100" height="10" fill="COLOR1"/><rect y="70" width="100" height="10" fill="COLOR2"/><rect y="80" width="100" height="10" fill="COLOR1"/><rect y="90" width="100" height="10" fill="COLOR2"/></svg>`
     };
 
     function update() {
         let s = svgs[type].replace(/COLOR1/g, c1).replace(/COLOR2/g, c2);
-        let url = "data:image/svg+xml;base64," + btoa(s);
+        let url = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(s)));
         overlayImg.onload = draw;
         overlayImg.src = url;
+        // ფონის გრადიენტის შეცვლა არჩეული ფერის მიხედვით
+        document.body.style.backgroundImage = `radial-gradient(at 0% 0%, ${c1}33 0px, transparent 50%), radial-gradient(at 100% 100%, ${c2}22 0px, transparent 50%)`;
     }
 
     function setType(t) {
         type = t;
-        document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase().includes(t)));
+        const btns = document.querySelectorAll('.type-btn');
+        btns.forEach(b => b.classList.remove('active'));
+        if(t==='horizontal') btns[0].classList.add('active');
+        if(t==='vertical') btns[1].classList.add('active');
+        if(t==='zebra') btns[2].classList.add('active');
+        
+        document.getElementById('label1').innerText = t === 'zebra' ? "ზოლი 1:" : "ფერი:";
         document.getElementById('group2').style.display = t === 'zebra' ? 'flex' : 'none';
         update();
     }
 
-    function changeColor(g, c) { if(g===1) c1=c; else c2=c; update(); }
+    function changeColor(g, c, el) {
+        // აქტიური ღილაკის მონიშვნა
+        const parent = el.parentElement;
+        parent.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+
+        if(g===1) c1=c; else c2=c;
+        update();
+    }
 
     document.getElementById('imgLoader').onchange = (e) => {
         const r = new FileReader();
@@ -104,14 +297,20 @@
             ctx.save();
             let minX = Math.min(pts[0].x, pts[3].x), minY = Math.min(pts[0].y, pts[1].y);
             let maxX = Math.max(pts[1].x, pts[2].x), maxY = Math.max(pts[2].y, pts[3].y);
-            ctx.globalAlpha = 0.85;
+            ctx.globalAlpha = 0.88; // ოდნავ უფრო მკვეთრი
             ctx.drawImage(overlayImg, minX, minY, maxX-minX, maxY-minY);
             ctx.restore();
         }
+        // წერტილები
         pts.forEach(p => {
             ctx.beginPath(); ctx.arc(p.x, p.y, 22, 0, Math.PI*2);
-            ctx.fillStyle = "rgba(255,0,0,0.8)"; ctx.fill();
-            ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = "rgba(56, 189, 248, 0.8)"; // ლურჯი ნეონის წერტილები
+            ctx.fill();
+            ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
+            // Glow effect
+            ctx.beginPath(); ctx.arc(p.x, p.y, 30, 0, Math.PI*2);
+            ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
+            ctx.fill();
         });
     }
 
