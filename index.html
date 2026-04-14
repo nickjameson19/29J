@@ -2,152 +2,105 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ჟალუზის მორგება</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #1a1a1a; color: white; padding: 20px; margin: 0; }
-        .ui-panel { background: #2a2a2a; padding: 25px; border-radius: 15px; display: inline-block; margin-bottom: 20px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .color-btn { width: 35px; height: 35px; border-radius: 50%; border: 2px solid white; cursor: pointer; margin: 5px; display: inline-block; transition: 0.2s; }
-        .color-btn:hover { transform: scale(1.1); }
-        canvas { background: #333; border: 1px solid #555; max-width: 95vw; cursor: crosshair; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-        input[type="file"] { margin: 15px; padding: 10px; background: #444; color: white; border-radius: 5px; border: none; cursor: pointer; }
-        h2 { color: #00b4d8; margin-top: 0; }
-        .hint { color: #888; font-size: 14px; margin-top: 10px; }
+        body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; padding: 10px; margin: 0; touch-action: none; }
+        .ui-panel { background: #2a2a2a; padding: 15px; border-radius: 15px; display: inline-block; margin-bottom: 10px; border: 1px solid #444; width: 90%; }
+        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; cursor: pointer; margin: 5px; display: inline-block; }
+        canvas { background: #333; border: 1px solid #555; max-width: 100%; height: auto; border-radius: 8px; touch-action: none; }
+        input[type="file"] { margin: 10px; font-size: 14px; }
+        h2 { margin: 5px 0; color: #00b4d8; }
     </style>
 </head>
 <body>
 
     <div class="ui-panel">
         <h2>ჟალუზი</h2>
-        
-        <div>
-            1. ატვირთე შენი ფანჯრის ფოტო: <br> 
-            <input type="file" id="imgLoader" accept="image/*">
+        <div>1. ატვირთე ფანჯარა: <input type="file" id="imgLoader" accept="image/*"></div>
+        <div id="colors">
+            2. ფერი: 
+            <div class="color-btn" style="background: #ffffff" onclick="changeColor('#ffffff')"></div>
+            <div class="color-btn" style="background: #f4e7d4" onclick="changeColor('#f4e7d4')"></div>
+            <div class="color-btn" style="background: #8b5e3c" onclick="changeColor('#8b5e3c')"></div>
+            <div class="color-btn" style="background: #4a4a4a" onclick="changeColor('#4a4a4a')"></div>
         </div>
-        
-        <div id="colors" style="margin-top: 15px;">
-            2. აირჩიე ფერი: <br>
-            <div class="color-btn" style="background: #ffffff" onclick="changeColor('#ffffff')" title="თეთრი"></div>
-            <div class="color-btn" style="background: #f4e7d4" onclick="changeColor('#f4e7d4')" title="კრემისფერი"></div>
-            <div class="color-btn" style="background: #d9c09a" onclick="changeColor('#d9c09a')" title="ღია ყავისფერი"></div>
-            <div class="color-btn" style="background: #8b5e3c" onclick="changeColor('#8b5e3c')" title="ყავისფერი"></div>
-            <div class="color-btn" style="background: #4a4a4a" onclick="changeColor('#4a4a4a')" title="ანტრაციტი"></div>
-        </div>
-        <p class="hint">ინსტრუქცია: მოკიდე მაუსი წითელ წერტილებს და დასვი ფანჯრის კუთხეებში.</p>
     </div>
 
-    <br>
     <canvas id="canvas"></canvas>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        let baseImg = new Image();
-        let overlayImg = new Image();
-        
-        // ფაილის სახელი, რომელიც GitHub-ზე ატვირთე
-        const jaluziUrl = "jaluzi.png"; 
+        let baseImg = new Image(), overlayImg = new Image();
+        let pts = [{x: 50, y: 50}, {x: 250, y: 50}, {x: 250, y: 250}, {x: 50, y: 250}];
+        let dragging = -1, currentColor = '#ffffff';
 
-        // საწყისი წერტილები
-        let pts = [{x: 100, y: 100}, {x: 400, y: 100}, {x: 400, y: 400}, {x: 100, y: 400}];
-        let dragging = -1;
-        let currentColor = '#ffffff';
+        overlayImg.src = "jaluzi.png"; 
+        overlayImg.onload = draw;
 
-        // ჟალუზის ჩატვირთვა
-        overlayImg.onload = () => { draw(); };
-        overlayImg.src = jaluziUrl;
-
-        // მომხმარებლის ფოტოს ჩატვირთვა
         document.getElementById('imgLoader').onchange = (e) => {
             const reader = new FileReader();
             reader.onload = (ev) => { 
                 baseImg.onload = () => { 
-                    canvas.width = baseImg.width; 
-                    canvas.height = baseImg.height; 
-                    // წერტილების ავტომატური განლაგება ფოტოს ზომის მიხედვით
-                    pts = [
-                        {x: canvas.width * 0.2, y: canvas.height * 0.2},
-                        {x: canvas.width * 0.8, y: canvas.height * 0.2},
-                        {x: canvas.width * 0.8, y: canvas.height * 0.8},
-                        {x: canvas.width * 0.2, y: canvas.height * 0.8}
-                    ];
+                    canvas.width = baseImg.width; canvas.height = baseImg.height;
+                    pts = [{x:canvas.width*0.2, y:canvas.height*0.2}, {x:canvas.width*0.8, y:canvas.height*0.2}, {x:canvas.width*0.8, y:canvas.height*0.8}, {x:canvas.width*0.2, y:canvas.height*0.8}];
                     draw(); 
-                }; 
-                baseImg.src = ev.target.result; 
-            };
-            reader.readAsDataURL(e.target.files[0]);
+                }; baseImg.src = ev.target.result; 
+            }; reader.readAsDataURL(e.target.files[0]);
         };
 
-        function changeColor(c) { 
-            currentColor = c; 
-            draw(); 
-        }
+        function changeColor(c) { currentColor = c; draw(); }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 1. ფონი (ფანჯრის ფოტო)
-            if (baseImg.src) {
-                ctx.drawImage(baseImg, 0, 0);
-            } else {
-                ctx.fillStyle = "#333";
-                ctx.fillRect(0, 0, canvas.width || 800, canvas.height || 600);
-            }
-            
-            // 2. ჟალუზის ფენა
-            if (overlayImg.complete && overlayImg.naturalWidth !== 0) {
+            if (baseImg.src) ctx.drawImage(baseImg, 0, 0);
+            if (overlayImg.complete) {
                 ctx.save();
                 let minX = Math.min(pts[0].x, pts[3].x), minY = Math.min(pts[0].y, pts[1].y);
                 let w = Math.max(pts[1].x, pts[2].x) - minX, h = Math.max(pts[2].y, pts[3].y) - minY;
-                
-                ctx.globalAlpha = 0.85;
+                ctx.globalAlpha = 0.8;
                 ctx.drawImage(overlayImg, minX, minY, w, h);
-                
-                // ფერის შეცვლის ეფექტი
                 ctx.globalCompositeOperation = 'multiply';
                 ctx.fillStyle = currentColor;
                 ctx.fillRect(minX, minY, w, h);
                 ctx.restore();
             }
-            
-            // 3. მართვის წერტილები
-            ctx.fillStyle = "#ff4d4d";
-            pts.forEach(p => { 
-                ctx.beginPath(); 
-                ctx.arc(p.x, p.y, 15, 0, Math.PI * 2); 
-                ctx.fill(); 
-                ctx.strokeStyle = "white"; 
-                ctx.lineWidth = 3; 
-                ctx.stroke();
-            });
+            ctx.fillStyle = "red";
+            pts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, canvas.width*0.02 + 10, 0, Math.PI*2); ctx.fill(); });
         }
 
-        // მაუსის მოძრაობის ლოგიკა
-        canvas.onmousedown = (e) => {
+        function getPos(e) {
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const x = (e.clientX - rect.left) * scaleX;
-            const y = (e.clientY - rect.top) * scaleY;
-            pts.forEach((p, i) => { if (Math.hypot(p.x - x, p.y - y) < 40) dragging = i; });
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        const down = (e) => {
+            const pos = getPos(e);
+            pts.forEach((p, i) => { if (Math.hypot(p.x - pos.x, p.y - pos.y) < 40) dragging = i; });
+            if(dragging !== -1) e.preventDefault();
         };
 
-        window.onmouseup = () => dragging = -1;
-        
-        window.onmousemove = (e) => {
+        const move = (e) => {
             if (dragging === -1) return;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            pts[dragging].x = (e.clientX - rect.left) * scaleX;
-            pts[dragging].y = (e.clientY - rect.top) * scaleY;
-            draw();
+            const pos = getPos(e);
+            pts[dragging].x = pos.x; pts[dragging].y = pos.y;
+            draw(); e.preventDefault();
         };
 
-        // საწყისი ზომა ეკრანისთვის
-        canvas.width = 800;
-        canvas.height = 600;
-        draw();
+        canvas.addEventListener('mousedown', down);
+        canvas.addEventListener('touchstart', down, {passive: false});
+        window.addEventListener('mousemove', move, {passive: false});
+        window.addEventListener('touchmove', move, {passive: false});
+        window.addEventListener('mouseup', () => dragging = -1);
+        window.addEventListener('touchend', () => dragging = -1);
+
+        canvas.width = 300; canvas.height = 300; draw();
     </script>
 </body>
 </html>
