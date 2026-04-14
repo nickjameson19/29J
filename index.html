@@ -3,160 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIO - სმარტ კონფიგურატორი</title>
+    <title>DIO Configurator</title>
     <style>
-        :root { --accent: #38bdf8; --bg: #0f172a; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; overflow-x: hidden; }
-        .container { display: flex; flex-direction: column; height: 100vh; }
-        .header { background: rgba(30, 41, 59, 0.9); padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .main-content { display: flex; flex: 1; padding: 10px; gap: 10px; overflow: hidden; }
+        :root { --accent: #38bdf8; --bg: #0b0f1a; --glass: rgba(255, 255, 255, 0.05); }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        .canvas-area { flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; border-radius: 15px; position: relative; }
-        canvas { max-width: 100%; border-radius: 10px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); }
+        .header { padding: 15px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); display: flex; justify-content: center; gap: 15px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .main-content { display: flex; flex: 1; padding: 15px; gap: 15px; overflow: hidden; }
+        
+        /* ვიზუალიზაცია */
+        .canvas-container { flex: 2; position: relative; background: #000; border-radius: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        canvas { max-width: 100%; max-height: 100%; border-radius: 10px; cursor: crosshair; }
 
-        .chat-panel { flex: 1; background: #1e293b; border-radius: 15px; display: flex; flex-direction: column; border: 1px solid var(--accent); }
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
-        .msg { padding: 10px; border-radius: 10px; max-width: 85%; line-height: 1.4; }
-        .msg.ai { background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--accent); align-self: flex-start; }
+        /* ჩატი */
+        .chat-container { flex: 1; background: var(--glass); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
+        .chat-msgs { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 14px; }
+        .msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; }
+        .msg.ai { background: rgba(56, 189, 248, 0.1); border-left: 4px solid var(--accent); align-self: flex-start; }
         .msg.user { background: var(--accent); color: #000; align-self: flex-end; font-weight: bold; }
 
-        .input-area { padding: 10px; background: rgba(0,0,0,0.2); display: flex; gap: 5px; }
-        .chat-input { flex: 1; background: #0f172a; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; }
-        .btn { background: var(--accent); border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .chat-input-area { padding: 12px; background: rgba(0,0,0,0.3); display: flex; gap: 8px; }
+        input[type="text"] { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; outline: none; }
         
-        @media (max-width: 768px) { .main-content { flex-direction: column; overflow-y: auto; } }
+        .btn { background: var(--accent); color: #000; padding: 8px 15px; border-radius: 6px; cursor: pointer; border: none; font-weight: bold; font-size: 13px; }
+        .color-dot { width: 25px; height: 25px; border-radius: 50%; border: 2px solid white; cursor: pointer; }
+
+        @media (max-width: 768px) { .main-content { flex-direction: column; } .chat-container { height: 350px; } }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2 style="margin:0; color:var(--accent);">DIO CONFIGURATOR</h2>
-    <div style="margin-top:10px;">
-        <label for="imgLoader" class="btn">📸 ფოტოს ატვირთვა</label>
-        <input type="file" id="imgLoader" style="display:none;">
-        <select id="typeSelect" onchange="updateType(this.value)" style="padding:8px; border-radius:5px;">
-            <option value="horizontal">ჰორიზონტალური ჟალუზი</option>
-            <option value="vertical">ვერტიკალური ჟალუზი</option>
-            <option value="zebra">ზებრა</option>
-        </select>
-        <input type="checkbox" id="animCheck"> ანიმაცია
-    </div>
+    <label for="imgLoader" class="btn">📸 ფოტო</label>
+    <input type="file" id="imgLoader" style="display:none;">
+    <select id="typeSelect" onchange="updateBlinds()" style="padding:7px; border-radius:5px; background:#1e293b; color:white; border:1px solid var(--accent);">
+        <option value="horizontal">ჰორიზონტალური</option>
+        <option value="vertical">ვერტიკალური</option>
+        <option value="zebra">ზებრა</option>
+    </select>
+    <input type="color" id="blindColor" value="#38bdf8" onchange="updateBlinds()" style="width:35px; height:35px; border:none; background:none; cursor:pointer;">
+    <label style="font-size:12px;"><input type="checkbox" id="animCheck"> ანიმაცია</label>
 </div>
 
 <div class="main-content">
-    <div class="canvas-area">
+    <div class="canvas-container">
         <canvas id="canvas"></canvas>
     </div>
-    <div class="chat-panel">
-        <div id="msgs" class="chat-messages">
-            <div class="msg ai">გამარჯობა! მე ვარ დიოს ასისტენტი. მკითხეთ ნებისმიერ პროდუქტზე. 😊</div>
+    
+    <div class="chat-container">
+        <div class="chat-msgs" id="chatBox">
+            <div class="msg ai">მოგესალმებით! მე ვარ დიოს სმარტ ასისტენტი. რით შემიძლია დაგეხმაროთ? 😊</div>
         </div>
-        <div class="input-area">
-            <input type="text" id="chatInput" class="chat-input" placeholder="ჩაწერეთ კითხვა...">
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="ჰკითხე ნებისმიერ პროდუქტზე..." onkeypress="if(event.key==='Enter') sendMsg()">
             <button class="btn" onclick="sendMsg()">➤</button>
         </div>
     </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
     let baseImg = new Image(), overlayImg = new Image();
     let pts = [{x:50,y:50}, {x:250,y:50}, {x:250,y:200}, {x:50,y:200}];
-    let dragging = -1, type = 'horizontal', animH = 1, animDir = -0.01;
+    let dragging = -1, animH = 1, animDir = -0.01;
 
-    // --- ჟალუზის ტექსტურის შექმნა ---
-    function createBlindsTexture(t, color) {
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = 200; tempCanvas.height = 200;
-        const tCtx = tempCanvas.getContext('2d');
-        tCtx.fillStyle = color; tCtx.fillRect(0,0,200,200);
-        tCtx.strokeStyle = "rgba(0,0,0,0.2)"; tCtx.lineWidth = 1;
-
-        if(t === 'horizontal') {
-            for(let i=0; i<200; i+=10) { tCtx.strokeRect(0, i, 200, 1); }
-        } else if(t === 'vertical') {
-            for(let i=0; i<200; i+=20) { tCtx.strokeRect(i, 0, 1, 200); }
-        } else if(t === 'zebra') {
-            for(let i=0; i<200; i+=40) { tCtx.fillStyle = "rgba(0,0,0,0.4)"; tCtx.fillRect(0, i+20, 200, 20); }
-        }
-        overlayImg.src = tempCanvas.toDataURL();
-    }
-
-    // --- ჩატი (გასწორებული ლოგიკა) ---
+    // --- ჭკვიანი ჩატბოტი (KNOWLEDGE BASE) ---
     const dioInfo = [
-        { keys: ["ალუმინის", "ჰორიზონტალური", "ჟალუზი"], ans: "ალუმინის ჰორიზონტალური ჟალუზი საუკეთესოა ოფისებისთვის. იწმინდება ნოტიო ჩვრით. ზომა: 0.25მ-დან 3მ-მდე." },
-        { keys: ["პერგოლა", "ბიოკლიმატური"], ans: "ბიოკლიმატური პერგოლა უძლებს თოვლს და ქარს. მაქსიმალური ზომა 4.5მ x 6მ." },
-        { keys: ["მისამართი", "სად"], ans: "📍 თბილისი: აღმაშენებლის ხეივანი მე-12 კმ. ბათუმი: ლორთქიფანიძის 2." },
-        { keys: ["ფასი"], ans: "ფასის დასაზუსტებლად გთხოვთ მიმართოთ კონსულტანტს." }
+        { keys: ["გარაჟი", "ავტოფარეხი", "კარი", "ჭიშკარი"], ans: "დიო გთავაზობთ გარაჟის სექციურ და როლეტურ კარებს. სექციური იხსნება ჭერში, ხოლო როლეტური იხვევა ყუთში. ორივე აღჭურვილია ავტომატიკით. 🚗" },
+        { keys: ["პერგოლა", "ბიოკლიმატური", "გადახურვა"], ans: "ბიოკლიმატური პერგოლა უძლებს 110კმ/სთ ქარს. მაქსიმალური ზომა ერთ მოდულზე: 4.5მ x 6.0მ. მართვა ხდება დისტანციურად. 🌦️" },
+        { keys: ["ზომა", "რა ზომის", "სიგანე"], ans: "ზომები ინდივიდუალურია: ჰორიზონტალური (3მ-მდე), ვერტიკალური (5მ სიმაღლემდე), ზებრა/როლეტი (2.4მ-მდე სიგანე). 📏" },
+        { keys: ["მისამართი", "ფილიალი", "სად ხართ"], ans: "📍 თბილისი: აღმაშენებლის ხეივანი მე-12 კმ. ბათუმი: ლორთქიფანიძის 2. ქუთაისი: შატავას 2. თელავი: თბილისის გზატკეცილი 41." },
+        { keys: ["ფასი", "რა ღირს"], ans: "ზუსტი ფასის დასადგენად საჭიროა აზომვა და მასალის შერჩევა. გთხოვთ ფასი დააზუსტოთ ჩვენს კონსულტანტთან. 💰" }
     ];
 
     function sendMsg() {
-        const inp = document.getElementById('chatInput');
-        const txt = inp.value.toLowerCase();
+        const inp = document.getElementById('userInput');
+        const txt = inp.value.trim().toLowerCase();
         if(!txt) return;
         addMsg(inp.value, 'user');
         
-        let reply = "გთხოვთ დააზუსტოთ კითხვა ჟალუზებზე, პერგოლაზე ან მისამართზე. 😊";
+        let response = "გთხოვთ დააზუსტოთ კითხვა. შემიძლია გიპასუხოთ ჟალუზების ზომებზე, გარაჟის კარებზე ან მისამართებზე. 😊";
         for(let item of dioInfo) {
-            if(item.keys.some(k => txt.includes(k))) { reply = item.ans; break; }
+            if(item.keys.some(k => txt.includes(k))) { response = item.ans; break; }
         }
-        setTimeout(() => addMsg(reply, 'ai'), 500);
+        setTimeout(() => addMsg(response, 'ai'), 600);
         inp.value = '';
     }
 
     function addMsg(t, s) {
-        const m = document.getElementById('msgs');
-        m.innerHTML += `<div class="msg ${s}">${t}</div>`;
-        m.scrollTop = m.scrollHeight;
+        const b = document.getElementById('chatBox');
+        b.innerHTML += `<div class="msg ${s}">${t}</div>`;
+        b.scrollTop = b.scrollHeight;
     }
 
-    // --- ვიზუალიზაცია ---
+    // --- ვიზუალიზაცია & ტექსტურები ---
+    function updateBlinds() {
+        const t = document.getElementById('typeSelect').value;
+        const color = document.getElementById('blindColor').value;
+        const temp = document.createElement('canvas');
+        temp.width = 400; temp.height = 400;
+        const tCtx = temp.getContext('2d');
+        
+        tCtx.fillStyle = color; tCtx.fillRect(0,0,400,400);
+        tCtx.strokeStyle = "rgba(0,0,0,0.3)"; tCtx.lineWidth = 1.5;
+
+        if(t === 'horizontal') {
+            for(let i=0; i<400; i+=12) { tCtx.strokeRect(0, i, 400, 1); }
+        } else if(t === 'vertical') {
+            for(let i=0; i<400; i+=25) { tCtx.strokeRect(i, 0, 1, 400); }
+        } else if(t === 'zebra') {
+            for(let i=0; i<400; i+=50) { tCtx.fillStyle = "rgba(0,0,0,0.3)"; tCtx.fillRect(0, i+25, 400, 25); }
+        }
+        overlayImg.src = temp.toDataURL();
+    }
+
     function draw() {
         ctx.clearRect(0,0,canvas.width,canvas.height);
         if(baseImg.src) ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
         
         if(overlayImg.src) {
             ctx.globalAlpha = 0.8;
-            ctx.drawImage(overlayImg, pts[0].x, pts[0].y, pts[1].x-pts[0].x, (pts[2].y-pts[1].y)*animH);
+            // პერსპექტივის გამარტივებული მორგება
+            ctx.drawImage(overlayImg, pts[0].x, pts[0].y, pts[1].x - pts[0].x, (pts[3].y - pts[0].y) * animH);
             ctx.globalAlpha = 1;
         }
-        
+
         pts.forEach(p => {
             ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2);
             ctx.fillStyle = "white"; ctx.fill();
-            ctx.strokeStyle = "#38bdf8"; ctx.stroke();
+            ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 3; ctx.stroke();
         });
 
         if(document.getElementById('animCheck').checked) {
-            animH += animDir;
-            if(animH < 0.1 || animH > 1) animDir *= -1;
+            animH += animDir; if(animH < 0.1 || animH > 1) animDir *= -1;
         }
         requestAnimationFrame(draw);
     }
 
     document.getElementById('imgLoader').onchange = (e) => {
         const r = new FileReader();
-        r.onload = (ev) => { baseImg.src = ev.target.result; baseImg.onload = () => { canvas.width = 400; canvas.height = 300; }; };
+        r.onload = (ev) => {
+            baseImg.src = ev.target.result;
+            baseImg.onload = () => { canvas.width = 600; canvas.height = 400; updateBlinds(); };
+        };
         r.readAsDataURL(e.target.files[0]);
     };
 
-    function updateType(v) { type = v; createBlindsTexture(type, "#38bdf8"); }
-
-    // Mouse/Touch Events
-    canvas.addEventListener('mousedown', e => {
+    canvas.onmousedown = e => {
         const r = canvas.getBoundingClientRect();
         const mx = e.clientX-r.left, my = e.clientY-r.top;
-        pts.forEach((p, i) => { if(Math.hypot(p.x-mx, p.y-my) < 20) dragging = i; });
-    });
-    window.addEventListener('mousemove', e => {
+        pts.forEach((p, i) => { if(Math.hypot(p.x-mx, p.y-my) < 25) dragging = i; });
+    };
+    window.onmousemove = e => {
         if(dragging === -1) return;
         const r = canvas.getBoundingClientRect();
         pts[dragging] = {x: e.clientX-r.left, y: e.clientY-r.top};
-    });
-    window.addEventListener('mouseup', () => dragging = -1);
+    };
+    window.onmouseup = () => dragging = -1;
 
-    updateType('horizontal');
+    updateBlinds();
     draw();
 </script>
 </body>
