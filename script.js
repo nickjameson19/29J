@@ -3,50 +3,54 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stage, useFBX, useTexture, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
-// 3D მოდელის კომპონენტი ტექსტურებით
 function ZebraModel() {
-  // 1. ტვირთავთ FBX მოდელს
+  // 1. მოდელის ჩატვირთვა
   const fbx = useFBX('/d25.FBX');
 
-  // 2. ტვირთავთ ტექსტურას (შეცვალე 'texture_name.jpg' შენი ფაილის ზუსტი სახელით)
-  // თუ რამდენიმეა, შეგიძლია მასივი გამოიყენო
-  const texture = useTexture('/textures/your_fabric_texture.jpg'); 
+  // 2. შენი კონკრეტული ტექსტურების ჩატვირთვა
+  const textures = useTexture({
+    main: '/textures/b4.jpg',           // მთავარი ფერი/ფაქტურა
+    mask: '/textures/mask75.jpg',       // მასკა (თუ საჭიროა გამჭვირვალობისთვის)
+    cord: '/textures/shnur kapron.jpg', // თოკის ტექსტურა
+  });
 
-  // 3. ტექსტურის მორგება (Mapping)
+  // 3. ტექსტურების მორგება მოდელზე
   useMemo(() => {
     fbx.traverse((child) => {
       if (child.isMesh) {
-        // ვანიჭებთ ტექსტურას მოდელის ნაწილებს
-        child.material.map = texture;
-        child.material.needsUpdate = true;
+        // ვამოწმებთ მოდელის ნაწილის სახელს, რომ სწორი ტექსტურა დავადოთ
+        // თუ სახელი შეიცავს "shnur"-ს, ვადებთ თოკის ტექსტურას, დანარჩენზე - მთავარს
+        const isCord = child.name.toLowerCase().includes('shnur') || child.name.toLowerCase().includes('cord');
         
-        // თუ მოდელი ძალიან მუქია, დავამატოთ მეტალის ეფექტის შემცირება
-        if (child.material) {
-          child.material.roughness = 0.5;
-          child.material.metalness = 0.2;
-        }
+        child.material = new THREE.MeshStandardMaterial({
+          map: isCord ? textures.cord : textures.main,
+          alphaMap: textures.mask, // იყენებს mask75.jpg-ს გამჭვირვალობისთვის
+          transparent: true,
+          roughness: 0.7,
+          metalness: 0.1,
+        });
+        
+        child.material.needsUpdate = true;
       }
     });
-  }, [fbx, texture]);
+  }, [fbx, textures]);
 
   return <primitive object={fbx} scale={0.005} position={[0, -1, 0]} />;
 }
 
-export default function ZebraApp() {
+export default function App() {
   return (
-    <div style={{ width: '100vw', height: '100vh', background: '#f0f0f0', position: 'relative' }}>
+    <div style={{ width: '100vw', height: '100vh', background: '#ffffff', position: 'relative' }}>
       
-      {/* 3D სცენა - Canvas */}
+      {/* 3D სცენა */}
       <Canvas shadows dpr={[1, 2]}>
-        <Suspense fallback={null}>
-          {/* Stage ქმნის პროფესიონალურ განათებას */}
-          <Stage environment="apartment" intensity={0.8} contactShadow={true} shadowBias={-0.001}>
+        <Suspense fallback={<div>იტვირთება ჟალუზი...</div>}>
+          <Stage environment="apartment" intensity={0.8} contactShadow={true}>
             <ZebraModel />
           </Stage>
-          <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={50} />
+          <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={45} />
         </Suspense>
 
-        {/* კონტროლი: ტრიალი და ზუმი */}
         <OrbitControls 
           makeDefault 
           enableZoom={true} 
@@ -55,13 +59,16 @@ export default function ZebraApp() {
         />
       </Canvas>
 
-      {/* ინტერფეისი ზემოდან (ჩატი და ა.შ.) */}
+      {/* ინტერფეისი (ჩატი და მენიუ) */}
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', pointerEvents: 'none', zIndex: 10 }}>
-        <header style={{ padding: '20px', pointerEvents: 'auto' }}>
-          <h1 style={{ margin: 0, fontSize: '24px', color: '#333' }}>DIO - Zebra Blinds</h1>
-        </header>
+        <div style={{ padding: '30px', pointerEvents: 'auto' }}>
+          <h2 style={{ color: '#333', margin: 0 }}>DIO - Zebra Blinds</h2>
+        </div>
         
-        {/* შენი ჩატბოტი და სხვა ელემენტები ჩაჯდება აქ */}
+        {/* შენი ჩატბოტის ღილაკი */}
+        <div style={{ position: 'fixed', bottom: '30px', right: '30px', pointerEvents: 'auto' }}>
+           {/* აქ ჩასვი შენი ჩატის კოდი */}
+        </div>
       </div>
 
     </div>
