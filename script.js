@@ -1,66 +1,69 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stage, useFBX, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, Stage, useFBX, useTexture, PerspectiveCamera } from '@react-three/drei';
+import * as THREE from 'three';
 
-// 3D მოდელის კომპონენტი
+// 3D მოდელის კომპონენტი ტექსტურებით
 function ZebraModel() {
-  // დარწმუნდი, რომ ფაილის სახელი ზუსტად ემთხვევა: d25.FBX
-  const fbx = useFBX('/d25.FBX'); 
-  return <primitive object={fbx} scale={0.005} />;
+  // 1. ტვირთავთ FBX მოდელს
+  const fbx = useFBX('/d25.FBX');
+
+  // 2. ტვირთავთ ტექსტურას (შეცვალე 'texture_name.jpg' შენი ფაილის ზუსტი სახელით)
+  // თუ რამდენიმეა, შეგიძლია მასივი გამოიყენო
+  const texture = useTexture('/textures/your_fabric_texture.jpg'); 
+
+  // 3. ტექსტურის მორგება (Mapping)
+  useMemo(() => {
+    fbx.traverse((child) => {
+      if (child.isMesh) {
+        // ვანიჭებთ ტექსტურას მოდელის ნაწილებს
+        child.material.map = texture;
+        child.material.needsUpdate = true;
+        
+        // თუ მოდელი ძალიან მუქია, დავამატოთ მეტალის ეფექტის შემცირება
+        if (child.material) {
+          child.material.roughness = 0.5;
+          child.material.metalness = 0.2;
+        }
+      }
+    });
+  }, [fbx, texture]);
+
+  return <primitive object={fbx} scale={0.005} position={[0, -1, 0]} />;
 }
 
-export default function MyPage() {
+export default function ZebraApp() {
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', background: '#ffffff', overflow: 'hidden' }}>
+    <div style={{ width: '100vw', height: '100vh', background: '#f0f0f0', position: 'relative' }}>
       
-      {/* --- 3D სექცია (ჟალუზი) --- */}
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1 }}>
-        <Canvas shadows>
-          <Suspense fallback={null}>
-            <Stage environment="apartment" intensity={0.7} contactShadow={true}>
-              <ZebraModel />
-            </Stage>
-            <PerspectiveCamera makeDefault position={[0, 0, 5]} />
-          </Suspense>
-          {/* მაუსით ტრიალის კონტროლი */}
-          <OrbitControls enableZoom={true} minPolarAngle={Math.PI / 2.5} maxPolarAngle={Math.PI / 1.5} />
-        </Canvas>
-      </div>
+      {/* 3D სცენა - Canvas */}
+      <Canvas shadows dpr={[1, 2]}>
+        <Suspense fallback={null}>
+          {/* Stage ქმნის პროფესიონალურ განათებას */}
+          <Stage environment="apartment" intensity={0.8} contactShadow={true} shadowBias={-0.001}>
+            <ZebraModel />
+          </Stage>
+          <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={50} />
+        </Suspense>
 
-      {/* --- ინტერფეისის შრე (ჩატი, მენიუ, ტექსტი) --- */}
-      <div style={{ position: 'relative', zIndex: 10, pointerEvents: 'none', height: '100%' }}>
+        {/* კონტროლი: ტრიალი და ზუმი */}
+        <OrbitControls 
+          makeDefault 
+          enableZoom={true} 
+          minPolarAngle={Math.PI / 2.5} 
+          maxPolarAngle={Math.PI / 1.5} 
+        />
+      </Canvas>
+
+      {/* ინტერფეისი ზემოდან (ჩატი და ა.შ.) */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', pointerEvents: 'none', zIndex: 10 }}>
+        <header style={{ padding: '20px', pointerEvents: 'auto' }}>
+          <h1 style={{ margin: 0, fontSize: '24px', color: '#333' }}>DIO - Zebra Blinds</h1>
+        </header>
         
-        {/* მენიუ */}
-        <nav style={{ pointerEvents: 'auto', padding: '30px', display: 'flex', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold' }}>DIO.GE</div>
-          <div>მენიუ</div>
-        </nav>
-
-        {/* მთავარი სათაური */}
-        <div style={{ padding: '50px', maxWidth: '500px' }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '20px' }}>ზებრა ჟალუზები</h1>
-          <p>მართე სინათლე შენს ოთახში თანამედროვე 3D ტექნოლოგიით.</p>
-        </div>
-
-        {/* ჩატი - აქ ჩაჯდება შენი არსებული ჩატი */}
-        <div style={{ position: 'fixed', bottom: '30px', right: '30px', pointerEvents: 'auto' }}>
-          <div style={{ 
-            width: '60px', 
-            height: '60px', 
-            background: '#007AFF', 
-            borderRadius: '50%', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: 'white',
-            cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-          }}>
-            💬
-          </div>
-        </div>
-
+        {/* შენი ჩატბოტი და სხვა ელემენტები ჩაჯდება აქ */}
       </div>
+
     </div>
   );
 }
