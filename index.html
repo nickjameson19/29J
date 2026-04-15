@@ -1,167 +1,74 @@
-<!DOCTYPE html>
-<html lang="ka">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIO Configurator</title>
-    <style>
-        :root { --accent: #38bdf8; --bg: #0b0f1a; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        .header { padding: 15px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); display: flex; justify-content: center; gap: 12px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .main-content { display: flex; flex: 1; padding: 15px; gap: 15px; overflow: hidden; }
-        
-        /* ვიზუალიზაცია */
-        .canvas-container { flex: 2; background: #000; border-radius: 15px; display: flex; align-items: center; justify-content: center; position: relative; }
-        canvas { max-width: 100%; border-radius: 10px; cursor: crosshair; }
+import React, { Suspense, useMemo } from 'react'
+import { Canvas } from '@react-three/fiber'
+import { OrbitControls, Stage, useFBX, useTexture, PerspectiveCamera } from '@react-three/drei'
+import * as THREE from 'three'
 
-        /* ჩატი */
-        .chat-container { flex: 1; background: rgba(255, 255, 255, 0.05); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
-        .chat-msgs { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 14px; }
-        .msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; }
-        .msg.ai { background: rgba(56, 189, 248, 0.1); border-left: 4px solid var(--accent); align-self: flex-start; }
-        .msg.user { background: var(--accent); color: #000; align-self: flex-end; font-weight: bold; }
+// 3D მოდელის კომპონენტი
+function ZebraModel() {
+    // 1. მოდელის ჩატვირთვა (გამოვიყენოთ Type Assertion)
+    const fbx = useFBX('/d25.FBX') as THREE.Group
 
-        .input-area { padding: 12px; background: rgba(0,0,0,0.3); display: flex; gap: 8px; }
-        input[type="text"] { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; outline: none; }
-        
-        .btn { background: var(--accent); color: #000; padding: 8px 15px; border-radius: 6px; cursor: pointer; border: none; font-weight: bold; }
-        input[type="color"] { border: none; background: none; width: 35px; height: 35px; cursor: pointer; }
+    // 2. შენი ტექსტურების ჩატვირთვა public/textures-დან
+    const textures = useTexture({
+        map: '/textures/b4.jpg',
+        mask: '/textures/mask75.jpg',
+        cord: '/textures/shnur kapron.jpg',
+    })
 
-        @media (max-width: 768px) { .main-content { flex-direction: column; } .chat-container { height: 350px; } }
-    </style>
-</head>
-<body>
+    // 3. ტექსტურების მორგება მოდელის ნაწილებზე
+    useMemo(() => {
+        fbx.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+                const mesh = child as THREE.Mesh
+                
+                // ვამოწმებთ, არის თუ არა ეს ნაწილი თოკი (სახელის მიხედვით)
+                const isCord = mesh.name.toLowerCase().includes('shnur') || 
+                               mesh.name.toLowerCase().includes('cord')
 
-<div class="header">
-    <label for="imgLoader" class="btn">📸 ფოტო</label>
-    <input type="file" id="imgLoader" style="display:none;">
-    <select id="typeSelect" onchange="updateBlinds()" style="padding:7px; border-radius:5px; background:#1e293b; color:white; border:1px solid var(--accent);">
-        <option value="horizontal">ჰორიზონტალური</option>
-        <option value="vertical">ვერტიკალური</option>
-        <option value="zebra">ზებრა</option>
-    </select>
-    <input type="color" id="blindColor" value="#38bdf8" onchange="updateBlinds()">
-    <label style="font-size:12px;"><input type="checkbox" id="animCheck"> ანიმაცია</label>
-</div>
+                mesh.material = new THREE.MeshStandardMaterial({
+                    map: isCord ? textures.cord : textures.map,
+                    alphaMap: textures.mask,
+                    transparent: true,
+                    alphaTest: 0.5,
+                    roughness: 0.8,
+                    metalness: 0.1,
+                    side: THREE.DoubleSide
+                })
+                mesh.material.needsUpdate = true
+            }
+        })
+    }, [fbx, textures])
 
-<div class="main-content">
-    <div class="canvas-container">
-        <canvas id="canvas"></canvas>
-    </div>
-    
-    <div class="chat-container">
-        <div class="chat-msgs" id="chatBox">
-            <div class="msg ai">მოგესალმებით! მე ვარ დიოს ასისტენტი. რით შემიძლია დაგეხმაროთ? 😊</div>
+    return <primitive object={fbx} scale={0.005} position={[0, -1, 0]} />
+}
+
+export default function ZebraPage() {
+    return (
+        <div style={{ width: '100vw', height: '100vh', background: '#ffffff', position: 'relative' }}>
+            <Canvas shadows dpr={[1, 2]}>
+                <Suspense fallback={null}>
+                    {/* Stage ქმნის ავტომატურ განათებას */}
+                    <Stage environment="apartment" intensity={0.8} contactShadow={true}>
+                        <ZebraModel />
+                    </Stage>
+                    <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={45} />
+                </Suspense>
+                
+                {/* მაუსით მართვა */}
+                <OrbitControls 
+                    makeDefault 
+                    enableZoom={true} 
+                    minPolarAngle={Math.PI / 2.5} 
+                    maxPolarAngle={Math.PI / 1.5} 
+                />
+            </Canvas>
+
+            {/* ინტერფეისის შრე (Pointer events: none რომ 3D-ს ხელი არ შეუშალოს) */}
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', pointerEvents: 'none', zIndex: 10 }}>
+                <div style={{ padding: '30px', pointerEvents: 'auto' }}>
+                    <h2 style={{ color: '#333', margin: 0 }}>DIO - Zebra Clis Duo</h2>
+                </div>
+            </div>
         </div>
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="ჩაწერეთ კითხვა..." onkeypress="if(event.key==='Enter') sendMsg()">
-            <button class="btn" onclick="sendMsg()">➤</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
-    let baseImg = new Image(), overlayImg = new Image();
-    let pts = [{x:50,y:50}, {x:250,y:50}, {x:250,y:200}, {x:50,y:200}];
-    let dragging = -1, animH = 1, animDir = -0.01;
-
-    // --- ადეკვატური ჩატის ლოგიკა ---
-    const dioInfo = [
-        { keys: ["პერგოლა", "ბიოკლიმატური", "გადახურვა"], ans: "ბიოკლიმატური პერგოლა უძლებს 110კმ/სთ ქარს. მაქსიმალური ზომა ერთ მოდულზე: 4.5მ x 6.0მ. მართვა ხდება პულტით. 🌦️" },
-        { keys: ["გარაჟი", "ავტოფარეხი", "კარი", "ჭიშკარი"], ans: "დიო გთავაზობთ გარაჟის სექციურ და როლეტურ კარებს. სექციური იხსნება ჭერში, როლეტური კი იხვევა ყუთში. 🚗" },
-        { keys: ["ჟალუზი", "ფარდა", "ალუმინის", "ზომა"], ans: "ჟალუზების ზომები ინდივიდუალურია: ჰორიზონტალური 3 მეტრამდე სიგანის, ვერტიკალური 5 მეტრამდე სიმაღლის. 📏" },
-        { keys: ["მისამართი", "ფილიალი", "სად ხართ"], ans: "📍 თბილისი: აღმაშენებლის ხეივანი მე-12 კმ. ბათუმი: ლორთქიფანიძის 2. ქუთაისი: შატავას 2. თელავი: თბილისის გზატკეცილი 41." },
-        { keys: ["ფასი", "რა ღირს"], ans: "ფასის დასადგენად საჭიროა ზომები. გთხოვთ, ზუსტი კალკულაციისთვის მიმართოთ ჩვენს კონსულტანტს. 💰" }
-    ];
-
-    function sendMsg() {
-        const inp = document.getElementById('userInput');
-        const txt = inp.value.trim().toLowerCase();
-        if(!txt) return;
-        addMsg(inp.value, 'user');
-        
-        let reply = "გთხოვთ დააზუსტოთ კითხვა. შემიძლია გიპასუხოთ პერგოლაზე, გარაჟის კარზე, ჟალუზებზე ან მისამართზე. 😊";
-        for(let item of dioInfo) {
-            if(item.keys.some(k => txt.includes(k))) { reply = item.ans; break; }
-        }
-        setTimeout(() => addMsg(reply, 'ai'), 500);
-        inp.value = '';
-    }
-
-    function addMsg(t, s) {
-        const b = document.getElementById('chatBox');
-        b.innerHTML += `<div class="msg ${s}">${t}</div>`;
-        b.scrollTop = b.scrollHeight;
-    }
-
-    // --- ჟალუზის ტექსტურის გენერაცია ---
-    function updateBlinds() {
-        const type = document.getElementById('typeSelect').value;
-        const color = document.getElementById('blindColor').value;
-        const temp = document.createElement('canvas');
-        temp.width = 400; temp.height = 400;
-        const tCtx = temp.getContext('2d');
-        
-        tCtx.fillStyle = color; tCtx.fillRect(0,0,400,400);
-        tCtx.strokeStyle = "rgba(0,0,0,0.25)"; tCtx.lineWidth = 1.2;
-
-        if(type === 'horizontal') {
-            for(let i=0; i<400; i+=12) tCtx.strokeRect(0, i, 400, 1);
-        } else if(type === 'vertical') {
-            for(let i=0; i<400; i+=25) tCtx.strokeRect(i, 0, 1, 400);
-        } else if(type === 'zebra') {
-            for(let i=0; i<400; i+=50) { tCtx.fillStyle = "rgba(0,0,0,0.3)"; tCtx.fillRect(0, i+25, 400, 25); }
-        }
-        overlayImg.src = temp.toDataURL();
-    }
-
-    function draw() {
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        if(baseImg.src) ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
-        
-        if(overlayImg.src) {
-            ctx.globalAlpha = 0.8;
-            ctx.drawImage(overlayImg, pts[0].x, pts[0].y, pts[1].x - pts[0].x, (pts[3].y - pts[0].y) * animH);
-            ctx.globalAlpha = 1;
-        }
-
-        pts.forEach(p => {
-            ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2);
-            ctx.fillStyle = "white"; ctx.fill();
-            ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 3; ctx.stroke();
-        });
-
-        if(document.getElementById('animCheck').checked) {
-            animH += animDir; if(animH < 0.1 || animH > 1) animDir *= -1;
-        }
-        requestAnimationFrame(draw);
-    }
-
-    document.getElementById('imgLoader').onchange = (e) => {
-        const r = new FileReader();
-        r.onload = (ev) => {
-            baseImg.src = ev.target.result;
-            baseImg.onload = () => { canvas.width = 600; canvas.height = 400; updateBlinds(); };
-        };
-        r.readAsDataURL(e.target.files[0]);
-    };
-
-    canvas.onmousedown = e => {
-        const r = canvas.getBoundingClientRect();
-        const mx = e.clientX-r.left, my = e.clientY-r.top;
-        pts.forEach((p, i) => { if(Math.hypot(p.x-mx, p.y-my) < 25) dragging = i; });
-    };
-    window.onmousemove = e => {
-        if(dragging === -1) return;
-        const r = canvas.getBoundingClientRect();
-        pts[dragging] = {x: e.clientX-r.left, y: e.clientY-r.top};
-    };
-    window.onmouseup = () => dragging = -1;
-
-    updateBlinds();
-    draw();
-</script>
-</body>
-</html>
+    )
+}
